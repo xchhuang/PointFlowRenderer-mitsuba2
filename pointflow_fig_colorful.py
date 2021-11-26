@@ -32,8 +32,8 @@ xml_head = \
             <integer name="sampleCount" value="256"/>
         </sampler>
         <film type="hdrfilm">
-            <integer name="width" value="1024"/>
-            <integer name="height" value="1024"/>
+            <integer name="width" value="512"/>
+            <integer name="height" value="512"/>
             <rfilter type="gaussian"/>
             <boolean name="banner" value="false"/>
         </film>
@@ -48,10 +48,12 @@ xml_head = \
     
 """
 
+# "0.025"
+
 xml_ball_segment = \
     """
     <shape type="sphere">
-        <float name="radius" value="0.025"/>
+        <float name="radius" value="{}"/>
         <transform name="toWorld">
             <translate x="{}" y="{}" z="{}"/>
         </transform>
@@ -97,13 +99,25 @@ def main():
 
     pcl = np.load('chair_pcl.npy')
     pcl = standardize_bbox(pcl, 2048)
+    # print('1:', pcl.shape, pcl.min(), pcl.max())
+
     pcl = pcl[:, [2, 0, 1]]
+    # print('2:', pcl.shape, pcl.min(), pcl.max())
+
     pcl[:, 0] *= -1
-    pcl[:, 2] += 0.0125
+    # print('3:', pcl.shape, pcl.min(), pcl.max())
+
+    base_radius = 0.025
+    coord_scale = 1.5   # changed be changed
+    # shift = 0.0125
+    shift = 0.1
+    pcl[:] *= coord_scale
+    pcl[:, 2] += shift
+    print('4:', pcl.shape, pcl.min(), pcl.max())
 
     for i in range(pcl.shape[0]):
-        color = colormap(pcl[i, 0] + 0.5, pcl[i, 1] + 0.5, pcl[i, 2] + 0.5 - 0.0125)
-        xml_segments.append(xml_ball_segment.format(pcl[i, 0], pcl[i, 1], pcl[i, 2], *color))
+        color = colormap(pcl[i, 0] + 0.5 * coord_scale, pcl[i, 1] + 0.5 * coord_scale, pcl[i, 2] + 0.5 * coord_scale - shift)
+        xml_segments.append(xml_ball_segment.format(base_radius * coord_scale, pcl[i, 0], pcl[i, 1], pcl[i, 2], *color))
     xml_segments.append(xml_tail)
 
     xml_content = str.join('', xml_segments)
