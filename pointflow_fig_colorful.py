@@ -1,7 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def standardize_bbox(pcl, points_per_object):
+    if points_per_object > pcl.shape[0]:
+        points_per_object = pcl.shape[0]
     pt_indices = np.random.choice(pcl.shape[0], points_per_object, replace=False)
     np.random.shuffle(pt_indices)
     pcl = pcl[pt_indices]  # n by 3
@@ -94,10 +97,29 @@ def colormap(x, y, z):
     return [vec[0], vec[1], vec[2]]
 
 
+def read_txt(path):
+    pts = []
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip().split(' ')
+            line = [float(l) for l in line]
+            _, x, y, z = line
+            pts.append([x, y, z])
+    pts = np.array(pts).astype(np.float32)
+    # print(pts.shape)
+    # plt.figure(1)
+    # plt.scatter(pts[:, 0], pts[:, 1])
+    # plt.show()
+    return pts
+
+
 def main():
     xml_segments = [xml_head]
 
-    pcl = np.load('chair_pcl.npy')
+    # pcl = np.load('chair_pcl.npy')
+    pcl = read_txt('./data/lines_arcs_3d_n106_exemplar.txt')
+
     pcl = standardize_bbox(pcl, 2048)
     # print('1:', pcl.shape, pcl.min(), pcl.max())
 
@@ -108,9 +130,9 @@ def main():
     # print('3:', pcl.shape, pcl.min(), pcl.max())
 
     base_radius = 0.025
-    coord_scale = 1.5   # changed be changed
+    coord_scale = 1.25   # changed be changed
     # shift = 0.0125
-    shift = 0.1
+    shift = 0.0125
     pcl[:] *= coord_scale
     pcl[:, 2] += shift
     print('4:', pcl.shape, pcl.min(), pcl.max())
