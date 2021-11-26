@@ -1,19 +1,21 @@
 import numpy as np
 
+
 def standardize_bbox(pcl, points_per_object):
     pt_indices = np.random.choice(pcl.shape[0], points_per_object, replace=False)
     np.random.shuffle(pt_indices)
-    pcl = pcl[pt_indices] # n by 3
+    pcl = pcl[pt_indices]  # n by 3
     mins = np.amin(pcl, axis=0)
     maxs = np.amax(pcl, axis=0)
-    center = ( mins + maxs ) / 2.
-    scale = np.amax(maxs-mins)
+    center = (mins + maxs) / 2.
+    scale = np.amax(maxs - mins)
     print("Center: {}, Scale: {}".format(center, scale))
-    result = ((pcl - center)/scale).astype(np.float32) # [-0.5, 0.5]
+    result = ((pcl - center) / scale).astype(np.float32)  # [-0.5, 0.5]
     return result
 
+
 xml_head = \
-"""
+    """
 <scene version="0.6.0">
     <integrator type="path">
         <integer name="maxDepth" value="-1"/>
@@ -29,9 +31,9 @@ xml_head = \
         <sampler type="ldsampler">
             <integer name="sampleCount" value="256"/>
         </sampler>
-        <film type="ldrfilm">
-            <integer name="width" value="1600"/>
-            <integer name="height" value="1200"/>
+        <film type="hdrfilm">
+            <integer name="width" value="1024"/>
+            <integer name="height" value="1024"/>
             <rfilter type="gaussian"/>
             <boolean name="banner" value="false"/>
         </film>
@@ -47,7 +49,7 @@ xml_head = \
 """
 
 xml_ball_segment = \
-"""
+    """
     <shape type="sphere">
         <float name="radius" value="0.025"/>
         <transform name="toWorld">
@@ -60,7 +62,7 @@ xml_ball_segment = \
 """
 
 xml_tail = \
-"""
+    """
     <shape type="rectangle">
         <ref name="bsdf" id="surfaceMaterial"/>
         <transform name="toWorld">
@@ -81,28 +83,34 @@ xml_tail = \
 </scene>
 """
 
-def colormap(x,y,z):
-    vec = np.array([x,y,z])
-    vec = np.clip(vec, 0.001,1.0)
-    norm = np.sqrt(np.sum(vec**2))
+
+def colormap(x, y, z):
+    vec = np.array([x, y, z])
+    vec = np.clip(vec, 0.001, 1.0)
+    norm = np.sqrt(np.sum(vec ** 2))
     vec /= norm
     return [vec[0], vec[1], vec[2]]
-xml_segments = [xml_head]
-
-pcl = np.load('chair_pcl.npy')
-pcl = standardize_bbox(pcl, 2048)
-pcl = pcl[:,[2,0,1]]
-pcl[:,0] *= -1
-pcl[:,2] += 0.0125
-
-for i in range(pcl.shape[0]):
-    color = colormap(pcl[i,0]+0.5,pcl[i,1]+0.5,pcl[i,2]+0.5-0.0125)
-    xml_segments.append(xml_ball_segment.format(pcl[i,0],pcl[i,1],pcl[i,2], *color))
-xml_segments.append(xml_tail)
-
-xml_content = str.join('', xml_segments)
-
-with open('mitsuba_scene.xml', 'w') as f:
-    f.write(xml_content)
 
 
+def main():
+    xml_segments = [xml_head]
+
+    pcl = np.load('chair_pcl.npy')
+    pcl = standardize_bbox(pcl, 2048)
+    pcl = pcl[:, [2, 0, 1]]
+    pcl[:, 0] *= -1
+    pcl[:, 2] += 0.0125
+
+    for i in range(pcl.shape[0]):
+        color = colormap(pcl[i, 0] + 0.5, pcl[i, 1] + 0.5, pcl[i, 2] + 0.5 - 0.0125)
+        xml_segments.append(xml_ball_segment.format(pcl[i, 0], pcl[i, 1], pcl[i, 2], *color))
+    xml_segments.append(xml_tail)
+
+    xml_content = str.join('', xml_segments)
+
+    with open('mitsuba_scene.xml', 'w') as f:
+        f.write(xml_content)
+
+
+if __name__ == '__main__':
+    main()
