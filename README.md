@@ -3,6 +3,7 @@
 ### What's new
 * updated script to use mitsuba2 (ldrfilm -> hdrfilm)
 * added script to convert exr to png
+* added support for reading point clouds from txt
 
 ### Prerequisites
 * python 3+
