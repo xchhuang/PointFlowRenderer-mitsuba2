@@ -117,8 +117,8 @@ def read_txt(path):
 def main():
     xml_segments = [xml_head]
 
-    # pcl = np.load('chair_pcl.npy')
-    pcl = read_txt('./data/lines_arcs_3d_n106_exemplar.txt')
+    pcl = np.load('chair_pcl.npy')
+    # pcl = read_txt('./data/lines_arcs_3d_n106_exemplar.txt')
 
     pcl = standardize_bbox(pcl, 2048)
     # print('1:', pcl.shape, pcl.min(), pcl.max())
